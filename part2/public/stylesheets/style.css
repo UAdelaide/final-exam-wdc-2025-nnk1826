@@ -154,3 +154,20 @@ textarea {
 section {
     display: none;
 }
+
+.logout-btn {
+    color: #e53935;
+    border: 2px solid #e53935;
+    background: transparent;
+    border-radius: 8px;
+    padding: 6px 22px;
+    font-weight: 500;
+    font-size: 1.1rem;
+    transition: background 0.2s, color 0.2s;
+}
+.logout-btn:hover,
+.logout-btn:focus {
+    background: #fdeaea;
+    color: #b71c1c;
+    border-color: #b71c1c;
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>Dog Walking Service</title>
@@ -7,14 +8,59 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 </head>
+
 <body class="bg-light">
-
   <div id="app" class="container py-5">
-    <h1 class="mb-4 text-primary">{{ message }}</h1>
-    <p class="lead">Connect with trusted walkers for your beloved dog!</p>
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card shadow">
+          <div class="card-body">
+            <h1 class="card-title text-primary text-center mb-4">{{ message }}</h1>
+            <p class="text-muted text-center mb-4">Connect with trusted walkers for your beloved dog!</p>
 
-    <a href="owner-dashboard.html" class="btn btn-outline-primary me-2">Owner Dashboard</a>
-    <a href="walker-dashboard.html" class="btn btn-outline-success">Walker Dashboard</a>
+            <!-- Login Form -->
+            <form @submit.prevent="handleLogin" v-if="!isLoading">
+              <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" class="form-control" id="username" v-model="loginForm.username"
+                  :class="{ 'is-invalid': errors.username }" required placeholder="Enter your username">
+                <div class="invalid-feedback" v-if="errors.username">
+                  {{ errors.username }}
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <div class="input-group">
+                  <input :type="showPassword ? 'text' : 'password'" class="form-control" id="password"
+                    v-model="loginForm.password" :class="{ 'is-invalid': errors.password }" required
+                    placeholder="Enter your password">
+                  <button class="btn btn-outline-secondary" type="button" @click="togglePassword">
+                    <i :class="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'">👁️</i>
+                  </button>
+                </div>
+                <div class="invalid-feedback" v-if="errors.password">
+                  {{ errors.password }}
+                </div>
+              </div>
+
+              <!-- Error Alert -->
+              <div class="alert alert-danger" v-if="loginError">
+                {{ loginError }}
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100" :disabled="isLoading">
+                <span v-if="isLoading" class="spinner-border spinner-border-sm me-2"></span>
+                {{ isLoading ? 'Logging in...' : 'Log In' }}
+              </button>
+            </form>
+
+            <!-- No success state board here -->
+
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -22,12 +68,67 @@
     createApp({
       data() {
         return {
-          message: 'Welcome to the Dog Walking Service!'
+          message: 'Welcome to the Dog Walking Service!',
+          isLoading: false,
+          showPassword: false,
+          loginForm: {
+            username: '',
+            password: ''
+          },
+          loginError: '',
+          errors: {}
         };
+      },
+      methods: {
+        async handleLogin() {
+          this.errors = {};
+          this.loginError = '';
+          this.isLoading = true;
+
+          if (!this.loginForm.username.trim()) {
+            this.errors.username = 'Username is required';
+          }
+          if (!this.loginForm.password.trim()) {
+            this.errors.password = 'Password is required';
+          }
+
+          if (Object.keys(this.errors).length > 0) {
+            this.isLoading = false;
+            return;
+          }
+
+          try {
+            const response = await fetch('/api/users/login', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(this.loginForm)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+              // Immediately redirect to the correct dashboard
+              window.location.href = data.redirectUrl;
+            } else {
+              this.loginError = data.error || 'Login failed';
+            }
+          } catch (error) {
+            console.error('Login error:', error);
+            this.loginError = 'Connection error. Please try again.';
+          } finally {
+            this.isLoading = false;
+          }
+        },
+        togglePassword() {
+          this.showPassword = !this.showPassword;
+        }
       }
     }).mount('#app');
   </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>
