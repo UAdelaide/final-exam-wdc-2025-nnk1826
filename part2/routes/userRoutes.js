@@ -51,9 +51,9 @@ router.post('/login', async (req, res) => {
 
     // Store user in session
     req.session.user = rows[0];
-    
-    res.json({ 
-      message: 'Login successful', 
+
+    res.json({
+      message: 'Login successful',
       user: rows[0],
       redirectUrl: rows[0].role === 'owner' ? '/owner-dashboard.html' : '/walker-dashboard.html'
     });
@@ -72,6 +72,33 @@ router.post('/logout', (req, res) => {
     res.clearCookie('connect.sid'); // Clears the session cookie
     res.json({ message: 'Logged out successfully' });
   });
+});
+
+// GET /api/dogs/mine - get all dogs for the logged-in owner
+router.get('/dogs/mine', async (req, res) => {
+  // Verify session exists
+  if (!req.session.user) {
+    return res.status(401).json({ error: 'Not logged in' });
+  }
+
+  // Verify user is an owner
+  if (req.session.user.role !== 'owner') {
+    return res.status(403).json({ error: 'Access forbidden' });
+  }
+
+  const ownerId = req.session.user.user_id;
+
+  try {
+    const [rows] = await db.query(`
+      SELECT dog_id, name, size 
+      FROM Dogs 
+      WHERE owner_id = ?
+    `, [ownerId]);
+
+    res.json(rows);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch dogs' });
+  }
 });
 
 module.exports = router;
