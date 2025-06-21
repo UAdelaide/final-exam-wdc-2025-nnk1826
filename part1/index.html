@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Dog Walkers Inc.</title>
+    <script src="https://unpkg.com/vue@3"></script>
+    <style>
+        .marquee {
+            overflow: hidden;
+            white-space: nowrap;
+            animation: scroll-up 1s linear infinite;
+            height: 2em;
+        }
+
+        @keyframes scroll-up {
+            0% {
+                transform: translateY(100%);
+            }
+
+            100% {
+                transform: translateY(-100%);
+            }
+        }
+
+        body {
+            background-color: #f0f;
+            /* Bad color contrast */
+            font-family: 'Comic Sans MS', cursive;
+            animation: blink 0.2s infinite;
+        }
+
+        @keyframes blink {
+            0% {
+                background-color: #f0f;
+            }
+
+            50% {
+                background-color: #0ff;
+            }
+
+            100% {
+                background-color: #f0f;
+            }
+        }
+
+        .dog-card {
+            border: 10px dotted lime;
+            margin: 30px;
+            padding: 50px;
+            width: 700px;
+            cursor: help;
+        }
+
+        .click-btn {
+            font-size: 30px;
+            padding: 30px;
+            background-color: red;
+            color: yellow;
+            border-radius: 50%;
+            border: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <h1 tabindex="-1">DOG OF THE DAY!!!!</h1>
+
+        <!-- Requires 3 clicks to view the dog, bad kinematic load -->
+        <button class="click-btn" @click="step = 1">STEP 1: DO YOU WANT TO SEE?</button>
+        <div v-if="step >= 1">
+            <button class="click-btn" @click="step = 2">STEP 2: ARE YOU SURE?</button>
+        </div>
+        <div v-if="step >= 2">
+            <button class="click-btn" @click="fetchDog">STEP 3: DOGS! </button>
+        </div>
+
+        <div class="dog-card" v-if="dogImage">
+            <img :src="dogImage" style="width: 500px;">
+            <p><b>Name:</b> YAHSJ2%%3&*2 </p>
+            <p><b>Breed:</b> SOMETHING AWESOME </p>
+            <p><b>Rating:</b> 11/10 </p>
+        </div>
+
+        <!-- Terrible scrolling marquee -->
+        <div class="marquee">🔥 BEST DOGS EVER 🔥</div>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+        createApp({
+            data() {
+                return {
+                    dogImage: '',
+                    step: 0
+                };
+            },
+            methods: {
+                async fetchDog() {
+                    const res = await fetch('https://dog.ceo/api/breeds/image/random');
+                    const data = await res.json();
+                    this.dogImage = data.message;
+                }
+            }
+        }).mount('#app');
+    </script>
+</body>
+
+</html>
