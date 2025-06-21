@@ -41,11 +41,25 @@ router.post('/:id/apply', async (req, res) => {
   const { walker_id } = req.body;
 
   try {
+    // Check for existing application first
+    const [existing] = await db.query(
+      'SELECT * FROM WalkApplications WHERE request_id = ? AND walker_id = ?',
+      [requestId, walker_id]
+    );
+
+    if (existing.length > 0) {
+      return res.status(409).json({
+        error: 'You have already applied for this walk'
+      });
+    }
+
+    // Insert new application
     await db.query(`
       INSERT INTO WalkApplications (request_id, walker_id)
       VALUES (?, ?)
     `, [requestId, walker_id]);
 
+    // Update walk request status
     await db.query(`
       UPDATE WalkRequests
       SET status = 'accepted'
@@ -55,6 +69,14 @@ router.post('/:id/apply', async (req, res) => {
     res.status(201).json({ message: 'Application submitted' });
   } catch (error) {
     console.error('SQL Error:', error);
+
+    // Handle duplicate entry explicitly
+    if (error.code === 'ER_DUP_ENTRY') {
+      return res.status(409).json({
+        error: 'You have already applied for this walk'
+      });
+    }
+
     res.status(500).json({ error: 'Failed to apply for walk' });
   }
 });
